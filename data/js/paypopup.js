@@ -118,11 +118,11 @@ $(document).ready(function () {
           if (/^(bitcoincash:)?(Q|P|p|q)[0-9a-zA-Z]{38,46}$/.test(String(address))) {
 
             if(amountType == "BCH"){
-              showPopup(address, amount, rect, null, amount*100000000);
+              showPopup(address, amount, rect, undefined, amount*100000000);
 
             }
             else if (amountType == "Satoshi") {
-              showPopup(address, amount, rect, null, amount);
+              showPopup(address, amount, rect, undefined, amount);
             }else{
 
 
@@ -134,7 +134,7 @@ $(document).ready(function () {
                   var addDecimal = response.price / 100;
                   var satoshiAmount = Math.floor((100000000 / addDecimal) * amount);
                   console.log(satoshiAmount);
-                  showPopup(address, satoshiAmount, rect, null, satoshiAmount);
+                  showPopup(address, satoshiAmount, rect, undefined, satoshiAmount);
                   // var showSatoshi = satoshiAmount / 100000000;
                   // showSatoshi = showSatoshi.toPrecision(7);
                   // console.log(showSatoshi);
@@ -177,6 +177,21 @@ $(document).ready(function () {
     $('body').on('click', 'a', function (e) {
         var href = $(this).attr('href');
         var rect =  this.getBoundingClientRect();
+        var id = $(this).attr('id')
+
+        if(id == 'telescope_youtube_button'){
+          telescope_split = href.split('/');
+          console.log(telescope_split[3])
+
+          util.getJSON('https://tipscash.herokuapp.com/search/youtube/' + telescope_split[3] +'/'+telescope_split[4]).then(function (json) {
+            console.log(json[0]['cashAddress']);
+            showPopup(json[0]['cashAddress'], null, rect);
+            return false;
+          });
+          return false;
+        }
+
+
         // Regex test for bitpay links
         if (/^bitcoincash:\?r=https:\/\/bitpay.com\/i\/[0-9a-zA-Z]{20,46}/.test(href)) {
           var amount = 0

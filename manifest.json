@@ -1,9 +1,9 @@
 {
     "manifest_version": 2,
-    "name": "Telescope BitcoinCash WebWallet",
+    "name": "Telescope BCH",
     "author": "Aaron Angert",
-    "description": "A Bitcoin Cash wallet in the browser. Send and receive instantly on any web page.",
-    "version": "2.9",
+    "description": "A Bitcoin Cash browser extension. Send and receive instantly on any web page.",
+    "version": "3.1",
 
     "icons": {
         "16": "data/bitcoin16.png",

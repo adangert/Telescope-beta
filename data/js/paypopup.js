@@ -173,6 +173,39 @@ $(document).ready(function () {
     });
 
 
+    let openTipsCashPopup = async function(youtubeData, rect) {
+
+      // URI encode this field before we send it off for encryption
+      // so it doesn't get mangled by the webserver's body parser.
+      let encodedOpreturn = encodeURIComponent('tipscash::youtube::'+youtubeData.contentident);
+
+      // Encrypt the opreturn string while this project is still 
+      // in stealth mode. Once we release, this will be public.
+      let opreturnString;
+      try {
+        opreturnString = await util.getJSON('https://tipscash.herokuapp.com/encrypt?opreturn='+encodedOpreturn);
+      }
+      catch(nope) {
+        console.log('Cannot fetch opreturn string from tipscash:', nope);
+        return false;
+      }
+
+      let fetchAccountUri = 'https://tipscash.herokuapp.com/search/youtube/' + youtubeData.useridenttype +'/'+youtubeData.userident;
+
+      let tipscashAccount;
+      try {
+        tipscashAccount = await util.getJSON(fetchAccountUri);
+        tipscashAccount = tipscashAccount[0];
+      }
+      catch(nope) {
+        console.log('Cannot fetch tipscash account for ', fetchAccountUri, ':', nope);
+        return false
+      }
+
+      showPopup(tipscashAccount['cashAddress'], null, rect, undefined, undefined, opreturnString);
+
+    };
+
     // Intercept all anchor clicks and determine if they are bitcoin pay links
     $('body').on('click', 'a', function (e) {
         var href = $(this).attr('href');
@@ -180,17 +213,10 @@ $(document).ready(function () {
         var id = $(this).attr('id')
 
         if(id == 'telescope_youtube_button'){
-          telescope_split = href.split('/');
-          console.log(telescope_split[3])
 
-          util.getJSON('https://tipscash.herokuapp.com/search/youtube/' + telescope_split[3] +'/'+telescope_split[4]).then(function (json) {
-            console.log(json[0]['cashAddress']);
-            showPopup(json[0]['cashAddress'], null, rect);
-            return false;
-          });
+          openTipsCashPopup($(this).data(), rect);
           return false;
         }
-
 
         // Regex test for bitpay links
         if (/^bitcoincash:\?r=https:\/\/bitpay.com\/i\/[0-9a-zA-Z]{20,46}/.test(href)) {
@@ -230,7 +256,7 @@ $(document).ready(function () {
 
     //amount is in local currency
     //if bch_amount != undefined, use that instead of amount
-    function showPopup(address, amount, rect, bitpay_url, bch_amount) {
+    function showPopup(address, amount, rect, bitpay_url, bch_amount, include_opreturn) {
         // removeFrame();
         util.iframe('paypopup.html').then(function (iframe) {
 
@@ -453,7 +479,7 @@ $(document).ready(function () {
                            // if (typeof bitpay_fee != 'undefined'){
                            //   use_fee = bitpay_fee;
                            // }
-                            wallet.send(newAddress, newAmount, use_fee, $iframe.find('#password').val(),bitpay_url).then(function () {
+                            wallet.send(newAddress, newAmount, use_fee, $iframe.find('#password').val(), bitpay_url, undefined/* This param is only for memo style opreturns */, include_opreturn).then(function () {
                                 $iframe.find('#progress').fadeOut('fast', function () {
                                     $iframe.find('#successAlert').fadeIn('fast').delay(1000).fadeIn('fast', removeFrame);
                                 });

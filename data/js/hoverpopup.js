@@ -9,35 +9,51 @@
  * Controls hoverpopup.html, the popup that appears hovering over addresses
  */
 //window.onload = function () { alert("It's loaded!") }
-
 var observer = new MutationObserver(function(mutations) {
 // console.log(mutations);
     for (var i=0; i<mutations.length; i++) {
         var mutationAddedNodes = mutations[i].addedNodes;
         for (var j=0; j<mutationAddedNodes.length; j++) {
             var node = mutationAddedNodes[j];
-              // console.log(node.classList)
-              // console.log(node);
-              if (node.classList && node.classList.contains("ytd-item-section-renderer")) {
 
-                  console.log("ok got it");
+              if (node.classList && node.classList.contains('ytd-item-section-renderer')) {
+
+                  // If this node contains no descendants that match
+                  // the one we're looking for, move along.
+                  var authorText = $(node).find('a#author-text');
+                  if (!authorText.length) {
+                    continue;
+                  }
+                  authorText = authorText[0] && authorText[0].href;
+                  var userIdentType;
+                  if (authorText.indexOf('/user/') > -1) {
+                    userIdentType = 'user';
+                    userIdent = authorText.split('/user/')[1];
+                  }
+                  else if (authorText.indexOf('/channel/') > -1) {
+                    userIdentType = 'channel';
+                    userIdent = authorText.split('/channel/')[1];
+                  }
+                  else {
+                    console.log('idfk whats goin on man');
+                  }
+
+                  // Now grab youtube's identifier for this piece of content
+                  var contentIdent = $(node).find('yt-formatted-string.published-time-text').find('a');
+                  contentIdent = contentIdent.length ? contentIdent[0].href : undefined;
+
+                  console.log('User will be identified by', userIdentType, 'as', userIdent, 'for content with id', contentIdent);
+
                   // console.log(node.insertAdjacentText('beforebegin',"YO DAWG"));
-                  console.log(node.firstElementChild);
-                  console.log(node.querySelector("#author-comment-badge"));
-                  console.log(node.querySelector("#author-text").href);
-                  var user_href=node.querySelector("#author-text").href;
-                  var lengthNode = document.createElement("a");
-                  var lengthNodeText = document.createTextNode("Inserted Telescope Text POC");
-
-                  $( '<a id="telescope_youtube_button" href="'+user_href+'"><img border="0" alt="W3Schools" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4gIPBg8q7VX6tAAAArVJREFUOMtdk0toU1EQhr9zbm5yU1qNRtMqVqlgBVEobXHpC6HU4quI7lSwttCtD0QUxZ2IC8FNQfGJRVTQovgArRtXBlHQKi5aEVtrH0ZM2iY5955xoUkaz2oYZub8/z//KGa9Ha/bnLgXX5DK/tprld0kIg2AaMVbjdMfd+PXR83oRF/z46DQowrB7uTOSh//sBFzSkQQBBFBK02pWOFq97RW+vzdpgeZ4oA9yfbKvOSvGDG7ALI2i6c9aiKL+J4bQZX+ASCkQ7dd5XbcabqfcbYlWx3gmBHTDWCsYVv1Duoq6lhRWc+XmSFGc6N4jlccZMWuVkplV3XVv1IH3u1LjOV+/PgLGibz47Qm2uha1k02yJKIJJjIjXPk0yGm/EwZnZg7L+HUdSztCiRosVgqnCg9ay6zvaYdheLJ2CO+zQzTHFtL3J1P/+QLXO2WuCgZ0RbZBKDR5IIcJz8f5+n4Y/I2z/PJF/SN3ScTpEmZXzjaKdPCF3+zs/LgirOCnVNIpoM0xuZpq95KTaSGxrlNzHVjJCIJjPgMpD8UUTg4EV2uL7jK5e3vN39j7XLpaw/d7ztZ4tXSUdv5T6mSCbRS6t1/M/AlYCA9wFQwxXBumJaFrWil+TI9iBFTrLPI+5AS1Q+0FZKCsCRai1Kwbv4G1q3dQMqkuP29l8tfe4iFYkUUIRV6rqvcOddnG8UXn4aqBsI6zKfMR258u8rQ9CAXhy7g6WixWaGo0NGbzvKDy3JaaazY9QCOcviYGaB35BZZO/NvAz8Zmh4ss3VYh08ZzDMFsCu5vdIX/5ovfvtsoxT4GjFEdbQktHbvedrb39t4N1PEvifZXpXHHPWtOVGmNPx/TGciOnyut/FepuwaAba8bnEWRxZVp/I/9wYEGxGaAUGR1OiXsVDs6oSfGu9rflg85z8xLSrRxVoGewAAAABJRU5ErkJggg==" width="15" height="15"></a>' ).insertBefore(node.querySelector("#reply-button-end"))
+                  var lengthNode = document.createElement('a');
+                  var lengthNodeText = document.createTextNode('Inserted Telescope Text POC');
+                  $( '<a id="telescope_youtube_button" href="'+authorText+'" data-userIdent="'+userIdent+'" data-userIdentType="'+userIdentType+'" data-contentIdent="'+contentIdent+'"><img border="0" alt="W3Schools" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4gIPBg8q7VX6tAAAArVJREFUOMtdk0toU1EQhr9zbm5yU1qNRtMqVqlgBVEobXHpC6HU4quI7lSwttCtD0QUxZ2IC8FNQfGJRVTQovgArRtXBlHQKi5aEVtrH0ZM2iY5955xoUkaz2oYZub8/z//KGa9Ha/bnLgXX5DK/tprld0kIg2AaMVbjdMfd+PXR83oRF/z46DQowrB7uTOSh//sBFzSkQQBBFBK02pWOFq97RW+vzdpgeZ4oA9yfbKvOSvGDG7ALI2i6c9aiKL+J4bQZX+ASCkQ7dd5XbcabqfcbYlWx3gmBHTDWCsYVv1Duoq6lhRWc+XmSFGc6N4jlccZMWuVkplV3XVv1IH3u1LjOV+/PgLGibz47Qm2uha1k02yJKIJJjIjXPk0yGm/EwZnZg7L+HUdSztCiRosVgqnCg9ay6zvaYdheLJ2CO+zQzTHFtL3J1P/+QLXO2WuCgZ0RbZBKDR5IIcJz8f5+n4Y/I2z/PJF/SN3ScTpEmZXzjaKdPCF3+zs/LgirOCnVNIpoM0xuZpq95KTaSGxrlNzHVjJCIJjPgMpD8UUTg4EV2uL7jK5e3vN39j7XLpaw/d7ztZ4tXSUdv5T6mSCbRS6t1/M/AlYCA9wFQwxXBumJaFrWil+TI9iBFTrLPI+5AS1Q+0FZKCsCRai1Kwbv4G1q3dQMqkuP29l8tfe4iFYkUUIRV6rqvcOddnG8UXn4aqBsI6zKfMR258u8rQ9CAXhy7g6WixWaGo0NGbzvKDy3JaaazY9QCOcviYGaB35BZZO/NvAz8Zmh4ss3VYh08ZzDMFsCu5vdIX/5ovfvtsoxT4GjFEdbQktHbvedrb39t4N1PEvifZXpXHHPWtOVGmNPx/TGciOnyut/FepuwaAba8bnEWRxZVp/I/9wYEGxGaAUGR1OiXsVDs6oSfGu9rflg85z8xLSrRxVoGewAAAABJRU5ErkJggg==" width="15" height="15"></a>' ).insertBefore(node.querySelector("#reply-button-end"))
                   // node.querySelector("#author-text").appendChild(lengthNodeText);
                   // node.appendChild(lengthNode);
                   // console.log(node.);
                   // console.log(mutations);
                   // observer.disconnect();
               }
-
-
 
             // if (node.classList && node.classList.contains("timestamp")) {
             //     var videoLength = node.firstElementChild.innerText;

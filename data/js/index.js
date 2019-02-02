@@ -18,9 +18,49 @@ $(document).ready(function () {
         SATOSHIS = 100000000;
         var FEE = wallet.getFee();
 
+        // Call tips.cash and check whether we've linked this
+        // user's social media accounts to their Telescope wallet.
+        // Change the links to reflect our findings.
+        async function setupSocialLinks() {
+            let myCashAddress = wallet.getAddress();
 
+            console.log('Setting up social links for address', myCashAddress);
+            let linkedAccounts;
+            try {
+                linkedAccounts = await util.getJSON('https://tipscash.herokuapp.com/accounts/address/'+myCashAddress);
 
-  //       util.get('https://bch-insight.bitpay.com/api/utils/estimatefee').then(function (response) {
+            } catch(nope) {
+                console.log('Cannot fetch remote accounts:', nope);
+                linkedAccounts = [];
+            }
+
+            let platformLinkElements = $('a.tipsCashPlatform');
+
+            for (let oneElement of platformLinkElements) {
+                let platformData = $(oneElement).data();
+
+                let accountRecord = _.find(linkedAccounts, { platformName: platformData.platformname });
+
+                if (accountRecord) {
+                    console.log('Your', accountRecord.platformName,'account has been registered:', accountRecord.isClaimed);
+                }
+
+                if (accountRecord && accountRecord.isClaimed) {
+                    let showConnectedAs = accountRecord.platformUserId.split(':')[1] ? accountRecord.platformUserId.split(':')[1] : accountRecord.platformUserId.split(':')[0];
+                    oneElement.outerHTML = '<span class="dropdown-item">Connected to <b>'+accountRecord.platformName+'</b> as <b>'+showConnectedAs+'</b></span>';
+                } else {
+                    $(oneElement).attr('href', 'https://tipscash.herokuapp.com/link/'+platformData.platformname+'/begin/'+myCashAddress);
+                    $(oneElement).text(platformData.platformname+': Not Connected ( click to connect )');
+                }
+
+            }
+
+            return {
+                success: true
+            };
+
+        }
+
   //
   //
   // // successMessage is whatever we passed in the resolve(...) function above.
@@ -32,22 +72,43 @@ $(document).ready(function () {
 
 
     function setupWallet() {
-        wallet.restoreAddress().then(setQRCodes,
-            function () {
-                return wallet.generateAddress();
-            }).then(setQRCodes,
-            function () {
-                alert('Failed to generate wallet. Refresh and try again.');
-            });
 
         function setQRCodes() {
             $('#qrcode').html(createQRCodeCanvas(wallet.getAddress()));
             $('#textAddress').text(wallet.getAddress());
         }
+
+        wallet
+        .restoreAddress()
+        .then(setQRCodes, function noWalletFount() {
+            return wallet.generateAddress();
+        })
+        .then(setQRCodes, function walletGenerationError() {
+            alert('Failed to generate wallet. Refresh and try again.');
+        })
+        .finally(async function setupSocialStuff() {
+
+            let socialSetupResults;
+            try {
+                socialSetupResults = await setupSocialLinks();
+            }
+            catch(nope) {
+                console.log('Couldnt setup social links:', nope);
+                return;
+            }
+
+            if (socialSetupResults.success) {
+                window.postMessage({ message: 'tipsCashSetup', cashAddress: wallet.getAddress() })
+            }
+
+        });
+
     }
+
     wallet.setBalanceListener(function (balance) {
         setBalance(balance);
     });
+
     setupWallet();
 
     $('#amount').on('keyup change', function () {
@@ -220,6 +281,30 @@ $(document).ready(function () {
     /*
      *  Settings Menu
      */
+
+
+    /*
+     * Social media links
+     */
+
+    $('.tipsCashPlatform').click(function () {
+        let platformInfo = $(this).data();
+        console.log('You clicked', platformInfo);
+console.log('typeof', typeof _);
+        for (var onePlatform of $('a.tipsCashPlatform')) {
+            onePlatform = $(onePlatform).data();
+            console.log('Got', onePlatform.platformname);
+        }
+        return true;
+        // $('#showPrivateKeyPasswordIncorrect').hide();
+        // if (wallet.isEncrypted()) {
+        //     $('#showPrivateKeyPassword').val(null).show();
+        // } else {
+        //     $('#showPrivateKeyPassword').hide();
+        // }
+        // $('#privateKey').hide();
+        // $('#showPrivateKeyModal').modal().show();
+    });
 
     /*
      * Set Password

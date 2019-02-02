@@ -13,7 +13,7 @@
 
     "content_security_policy": "script-src 'self' ; object-src 'self';",
 
-    "permissions": ["contextMenus", "activeTab", "<all_urls>", "storage"],
+    "permissions": ["contextMenus", "activeTab", "<all_urls>", "storage", "notifications"],
 
     "content_scripts": [
         {
@@ -37,9 +37,12 @@
     ],
 
     "background": {
-        "scripts": ["data/js/background.js"]
+        "scripts": [
+            "data/js/background.js",
+            "data/js/libs/tips.cash.js"
+        ],
+        "persistent": true
     },
-
     "web_accessible_resources": [
         "data/*"
     ],

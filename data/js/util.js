@@ -14,6 +14,7 @@
     var util = function () {},
         // Promisified ajax request
         request = function (url, type, data, headers) {
+
             return new Promise(function (resolve, reject) {
                 var req = new XMLHttpRequest();
                 //req.setRequestHeader('Cache-Control', 'no-cache');
@@ -68,6 +69,7 @@
         },
 
         post: function (url, data) {
+
             if (typeof chrome !== 'undefined') {
                 return request(url, 'POST', data, {});
             } else {

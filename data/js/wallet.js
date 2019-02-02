@@ -352,7 +352,8 @@
     //   return old;
     // }
     // Send bitcoin from the wallet to another address
-    wallet.prototype.send = function (sendAddress, amount, fee, password, bitpay_url, opreturn) {
+    wallet.prototype.send = function (sendAddress, amount, fee, password, bitpay_url, memoOpreturnHex, standardOpReturnAscii) {
+
         return new Promise(function (resolve, reject) {
             var decryptedPrivateKey = ret.getDecryptedPrivateKey(password);
             if (decryptedPrivateKey) {
@@ -436,7 +437,7 @@
 
                         var legacy_address = bch.Address.fromString(address,'livenet','pubkeyhash',bch.Address.CashAddrFormat).toString();
                         var legacy_sendaddress = bch.Address.fromString(sendAddress,'livenet','pubkeyhash',bch.Address.CashAddrFormat).toString();
-                        if(typeof opreturn === 'undefined')
+                        if(typeof memoOpreturnHex === 'undefined' && typeof standardOpReturnAscii === 'undefined')
                         {
                           var transaction = new bch.Transaction()
                           .from(utxos) // using the last UXTO to sign the next transaction
@@ -445,10 +446,29 @@
                           .change(legacy_address)
                           .sign(decryptedPrivateKey);
                         }
-                        else{
+
+                        // For standard opreturn transactions.
+                        else if (standardOpReturnAscii)
+                        {
+                          standardOpReturnAscii = standardOpReturnAscii.replace(/\s/ig,'');
+                          console.log('Adding opreturn', standardOpReturnAscii);
+                          var transaction = new bch.Transaction()
+                            .from(utxos) // using the last UXTO to sign the next transaction
+                            .to(legacy_sendaddress, Number(amount)) // Send 10000 Satoshi's
+                            .addData(standardOpReturnAscii)
+                            .feePerKb(Number(fee))
+                            .change(legacy_address)
+                            .sign(decryptedPrivateKey);
+
+                        }
+
+                        // This is for memo and blockpress style opreturns.
+                        // `memoOpreturnHex` should already be in hex format.
+                        else if (memoOpreturnHex)
+                        {
                           //'8d020c48656c6c6f20576f726c6421'
                           //for memo.cash and blockpress
-                          var script = bch.Script.buildDataOut(opreturn,'hex');
+                          var script = bch.Script.buildDataOut(memoOpreturnHex,'hex');
                           script.chunks[1].opcodenum = 2;
                           var out = new bch.Transaction.Output({script: script , satoshis: 0})
                           var transaction = new bch.Transaction()
@@ -517,17 +537,19 @@
                         });
 
 
-                      }else {
+                      } else {
 
                          //var data = JSON.stringify({'rawtx': transaction.toString()});
                         //var data = 'rawtx='+ transaction.toString();
                         //var insight = new explorer.Insight('https://bch-insight.bitpay.com');
-                        console.log(transaction.toString());
+                        console.log(transaction);
                         console.log(data);
                         headers = {'Content-type': 'application/json'};
                         //https://blockdozer.com/insight-api/tx/send
                         //https://bitcoincash.blockexplorer.com/api/tx/send
-                        util.post('https://rest.bitcoin.com/v1/rawtransactions/sendRawTransaction/'+transaction.toString(), headers).then(function () {
+                        util.post('https://rest.bitcoin.com/v1/rawtransactions/sendRawTransaction/'+transaction.toString(), headers).then(function (txid) {
+                            console.log(txid ? 'Success!' : 'Fail!');
+                            console.log('https://explorer.bitcoin.com/bch/tx/'+txid);
                             // Notify the balance listener of the changed amount immediately,
                             // but don't set the balance since the transaction will be processed by the websocket
                             //if (balanceListener) balanceListener(balance - amount - fee);

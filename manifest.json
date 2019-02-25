@@ -17,6 +17,26 @@
 
     "content_scripts": [
         {
+            "matches": ["https://twitter.com/*"],
+            "js": [
+                "data/js/libs/jquery-3.3.1.min.js",
+                "data/js/libs/lodash4.17.js",
+                "data/js/social/twitterDiscover.js",
+                "data/js/SocialTipButtonModal.js"
+            ],
+            "all_frames": true
+        },
+        {
+            "matches": ["https://*.youtube.com/watch*"],
+            "js": [
+                "data/js/libs/jquery-3.3.1.min.js",
+                "data/js/libs/lodash4.17.js",
+                "data/js/social/youtubeDiscover.js",
+                "data/js/SocialTipButtonModal.js"
+            ],
+            "all_frames": true
+        },
+        {
             "matches": ["<all_urls>"],
             "js": [
                 "data/js/libs/sanitize-html.js",
@@ -24,7 +44,7 @@
                 "data/js/libs/cryptojs.js",
                 "data/js/libs/bitcoincash-0.1.10.js",
                 "data/js/libs/BigInteger.js",
-                "data/js/libs/socket.io.js",
+                // "data/js/libs/socket.io.js",
                 "data/js/util.js",
                 "data/js/preferences.js",
                 "data/js/currency-manager.js",
@@ -39,7 +59,9 @@
     "background": {
         "scripts": [
             "data/js/background.js",
-            "data/js/libs/tips.cash.js"
+            // "data/js/libs/tips.cash.js",
+            "data/js/libs/lodash4.17.js",
+            "data/js/SocialTipButtonModal.js"
         ],
         "persistent": true
     },

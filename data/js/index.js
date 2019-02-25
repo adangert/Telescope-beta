@@ -290,7 +290,7 @@ $(document).ready(function () {
     $('.tipsCashPlatform').click(function () {
         let platformInfo = $(this).data();
         console.log('You clicked', platformInfo);
-console.log('typeof', typeof _);
+
         for (var onePlatform of $('a.tipsCashPlatform')) {
             onePlatform = $(onePlatform).data();
             console.log('Got', onePlatform.platformname);

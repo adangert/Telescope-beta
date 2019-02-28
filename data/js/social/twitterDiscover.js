@@ -104,7 +104,13 @@ var processPage = async function() {
     let modalInstance = new SocialTipButton({
       platformUserId: nodeData.userId,
       platformName: 'twitter',
-      contentId: nodeData.permalinkPath
+      contentId: nodeData.permalinkPath,
+      styleParentSelector: '.tweet.js-actionable-tweet',
+      styleParentCSS: {
+        'background-color': 'rgba(255,153,0,.6)',
+        'border-radius': '10px',
+        'padding': '12px'
+      }
     });
 
     let element = $(modalInstance).insertAfter(insertAfterNode);

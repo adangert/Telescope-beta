@@ -17,6 +17,16 @@
 
     "content_scripts": [
         {
+            "matches": ["https://*.reddit.com/*"],
+            "js": [
+                "data/js/libs/jquery-3.3.1.min.js",
+                "data/js/libs/lodash4.17.js",
+                "data/js/social/redditDiscover.js",
+                "data/js/SocialTipButtonModal.js"
+            ],
+            "all_frames": true
+        },
+        {
             "matches": ["https://twitter.com/*"],
             "js": [
                 "data/js/libs/jquery-3.3.1.min.js",

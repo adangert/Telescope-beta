@@ -12,7 +12,8 @@ var observer = new MutationObserver(function(mutations) {
   }
   else {
     updating = true;
-    processPage();
+    processPage(false, _.flatten(_.map(mutations, 'addedNodes')));
+    // processPage();
   }
 });
 
@@ -28,7 +29,6 @@ var openTipsCashPopup = async function(someHtmlElement, rect) {
   //   platformIdentType = splitUserId[0] ? 
   // }
 
-console.log('opening tipscashpopup!');
 
 
   let nodeData = $(someHtmlElement).data();
@@ -48,7 +48,11 @@ console.log('opening tipscashpopup!');
     return false;
   }
 
-  let fetchAccountUri = 'https://tipscash.herokuapp.com/search/'+nodeData.platformname+'/' + ( nodeData.useridenttype ? ( nodeData.useridenttype +'/'+nodeData.platformuserid ) : ( 'ident/' + nodeData.platformuserid) );
+  console.log('using opreturn:', opreturnString);
+
+  let fetchAccountUri = 'https://tipscash.herokuapp.com/search/youtube/ident/'+encodeURIComponent(nodeData.platformuserid);
+  // let fetchAccountUri = 'http://localhost:1337/search/youtube/ident/'+encodeURIComponent(nodeData.platformuserid);
+console.log('fetching from url:', fetchAccountUri);
 
   let tipscashAccount;
   try {
@@ -59,8 +63,10 @@ console.log('opening tipscashpopup!');
     console.log('Cannot fetch tipscash account for ', fetchAccountUri, ':', nope);
     return false
   }
+  console.log('opening tipscashpopup for!', nodeData);
 
-  // console.log('tipscashAccount:', tipscashAccount);
+  console.log('got tipscashAccount:', tipscashAccount);
+
   // console.log('window.showPopup:', window.showPopup);
   window.showPopup(tipscashAccount['cashAddress'], null, rect, undefined, undefined, opreturnString);
 
@@ -93,9 +99,9 @@ var videoOwnerUsername2;
 var videoOwnerChannelName;
 var videoId;
 
-var processPage = async function(isFirstLoad) {
-  // Add Icon on the video level
+var processPage = async function(isFirstLoad, addedNodes) {
 
+  // Add Icon on the video level
   if (!videoOwnerNode && !channelContainerNode) {
 
     var ownerNode = $('a.ytd-video-owner-renderer');
@@ -133,8 +139,8 @@ var processPage = async function(isFirstLoad) {
         return;
       }
 
-      let permalinkPath = window.location.origin+window.location.pathname+'?v='+videoId;
-      let platformUserId = videoOwnerChannelName+':' + (videoOwnerUsername || videoOwnerUsername2);
+      let permalinkPath = window.location.pathname+'?v='+videoId;
+      let platformUserId = videoOwnerChannelName+':' + (videoOwnerUsername || videoOwnerUsername2)+':';
 
       // Note, we are treating comments differently because
       // not all comments make both identifiers available
@@ -159,83 +165,187 @@ var processPage = async function(isFirstLoad) {
 
     }
 
-    // for (let oneNode of unprocessed) {
-
-      // // Get the current data attributes off the tweed
-      // let nodeData = $(oneNode).data();
-      // let insertBeforeNode = $(oneNode).find('ytd-toggle-button-renderer').first();
-      // insertBeforeNode = insertBeforeNode[0];
-      // if (!insertBeforeNode) {
-      //   console.log('cant seem to find where to insert this');
-      //   return;
-      // }
-
-      // let modalInstance = new SocialTipButton({
-      //   platformUserId: nodeData.userId,
-      //   platformName: 'youtube',
-      //   platformFeature: 'controls',
-      //   contentId: nodeData.permalinkPath
-      // });
-
-      // let element = $(modalInstance).insertBefore(insertBeforeNode);
-
-      // // // Set the event listener that opens the tip dialog when clicked
-      // setClickListener(element);
-    // }
-
   }
-
-  // let controlsSelector = '#top-level-buttons';
-  // let actionItems = $(controlsSelector);
-
-  // if (!actionItems.length) {
-  //   console.log('no top level buttons. returning');
-  //   updating = false;
-  //   return;
-  // }
-
-  // Add Icon for commenters
+  else {
 
 
-  // console.log('Processing Youtube page!', wallet.getAddress());
-/*
-  let actionSelector = '.tweet.js-actionable-tweet';
+    var getSocialButtonParamsFromComment = function(oneNode, isReply) {
 
-  let actionItems = $(actionSelector);
+      // If this node contains no descendants that match
+      // the one we're looking for, move along.
+      let authorText = $(oneNode).find('a#author-text');
+      if (!authorText.length) {
+        throw new Error('no_author');
+      }
+      authorText = authorText[0] && authorText[0].href;
+      let userIdentType;
+      let userIdent;
+      let contentIdent;
 
-  let unprocessed = $(actionSelector+':not([readyfortips]');
-  
-  if (unprocessed.length) {
-    console.log('There are',actionItems.length,'tweets on this page but only', unprocessed.length,'havent been processed.');
-  }
+      let platformUserId;
 
-  for (let oneNode of unprocessed) {
+      if (authorText.indexOf('/user/') > -1) {
+        userIdentType = 'user';
+        userIdent = authorText.split('/user/')[1];
+        platformUserId = ':'+userIdent+':';
+      }
+      else if (authorText.indexOf('/channel/') > -1) {
+        userIdentType = 'channel';
+        userIdent = authorText.split('/channel/')[1];
+        platformUserId = userIdent+'::';
+      }
+      else {
+        userIdentType = 'custom';
+        userIdent = authorText.split(window.location.origin)[1].replace(/\//,'');
+        platformUserId = '::'+userIdent;
+      }
 
-    // Mark this as processed
-    $(oneNode).attr({ readyfortips: true });
+      // Now grab youtube's identifier for this piece of content
+      contentIdent = $(oneNode).find('yt-formatted-string.published-time-text').find('a');
+      contentIdent = contentIdent.length ? window.location.pathname+(contentIdent[0].href.split(window.location.pathname)[1]) : undefined;
 
-    // Get the current data attributes off the tweed
-    let nodeData = $(oneNode).data();
-    let insertAfterNode = $(oneNode).find('.ProfileTweet-action--favorite:not(.u-hiddenVisually)');
-    insertAfterNode = insertAfterNode[0];
-    if (!insertAfterNode) {
-      console.log('cant seem to find where to insert this');
-      return;
+      // console.log('User will be identified by', userIdentType, 'as', userIdent, 'for content with id', contentIdent);
+
+      // Note, we are treating comments differently because
+      // not all comments make both identifiers available
+      // for us to see.  This needs to be simplified before
+      // release.
+      let socialButtonParams = {
+        platformUserId: platformUserId,
+        userIdentType: userIdentType,
+        platformName: 'youtube',
+        platformFeature: 'youtube-comments',
+        contentId: contentIdent
+      };
+
+      return socialButtonParams;
+
+    };
+
+
+    // Add tip buttons to base level comments
+    let actionSelector = 'ytd-comment-renderer#comment';
+
+
+    let actionItems = $(actionSelector);
+    let unprocessed = $(actionSelector+':not([readyfortips]');
+    
+    if (unprocessed.length) {
+      // console.log('There are',actionItems.length,'tweets on this page but only', unprocessed.length,'havent been processed.');
     }
 
-    let modalInstance = new SocialTipButton({
-      platformUserId: nodeData.userId,
-      platformName: 'youtube',
-      contentId: nodeData.permalinkPath
-    });
+    for (let oneNode of unprocessed) {
 
-    let element = $(modalInstance).insertAfter(insertAfterNode);
+      // Mark this as processed
+      $(oneNode).attr({ readyfortips: true });
 
-    // // Set the event listener that opens the tip dialog when clicked
-    setClickListener(element);
+      let socialButtonParams
+
+      try {
+        socialButtonParams = getSocialButtonParamsFromComment(oneNode);
+      }
+      catch(nope) {
+        console.log('ERROR!', nope);
+        continue;
+      }
+
+      // Add params to the element that will allow the
+      // class to style the comment if someone tips it.
+      _.extend(socialButtonParams, {
+        styleParentSelector: '#body.ytd-comment-renderer',
+        styleParentCSS: {
+          'background-color': '#FF9900',
+          'border-radius': '10px',
+          'padding': '10px'
+        }
+      })
+
+      let modalInstance;
+
+      try {
+        modalInstance = new SocialTipButton(socialButtonParams);
+      }
+      catch(nope) {
+        console.log('ERROR!', nope);
+        continue;
+      }
+
+      // Find the thumbs up button.  We will put the tipping icon just before it.
+      let insertBeforeNode = $(oneNode).find('ytd-toggle-button-renderer').first();
+      insertBeforeNode = insertBeforeNode.length ? insertBeforeNode[0] : undefined;
+      if (!insertBeforeNode) {
+        console.log('cant seem to find where to insert this');
+        continue;
+      }
+
+      let element = $(modalInstance).insertBefore(insertBeforeNode);
+
+      // Set the event listener that opens the tip dialog when clicked
+      setClickListener(element);
+
+    }
+
+    // Now add tip buttons to comment replies
+    let actionSelector2 = 'ytd-comment-renderer.ytd-comment-replies-renderer';
+    let actionItems2 = $(actionSelector2);
+    let unprocessed2 = $(actionSelector2+':not([readyfortips]');
+
+    for (let oneNode of unprocessed2) {
+
+      // Mark this as processed
+      $(oneNode).attr({ readyfortips: true });
+
+      let socialButtonParams
+
+      try {
+        socialButtonParams = getSocialButtonParamsFromComment(oneNode, true);
+      }
+      catch(nope) {
+        console.log('ERROR!', nope);
+        continue;
+      }
+
+      // Add params to the element that will allow the
+      // class to style the comment if someone tips it.
+      _.extend(socialButtonParams, {
+        styleParentSelector: '#body.ytd-comment-renderer',
+        styleParentCSS: {
+          'background-color': '#FF9900',
+          'border-radius': '10px',
+          'padding': '10px'
+        }
+      });
+
+      let modalInstance;
+
+      try {
+        modalInstance = new SocialTipButton(socialButtonParams);
+      }
+      catch(nope) {
+        console.log('ERROR!', nope);
+        continue;
+      }
+
+      // Find the thumbs up button.  We will put the tipping icon just before it.
+      let insertBeforeNode = $(oneNode).find('ytd-toggle-button-renderer').first();
+      insertBeforeNode = insertBeforeNode.length ? insertBeforeNode[0] : undefined;
+      if (!insertBeforeNode) {
+        console.log('cant seem to find where to insert this');
+        continue;
+      }
+
+      let element = $(modalInstance).insertBefore(insertBeforeNode);
+
+      // Set the event listener that opens the tip dialog when clicked
+      setClickListener(element);
+
+    }
+
+
+
 
   }
-*/
+
   updating = false;
 
 }

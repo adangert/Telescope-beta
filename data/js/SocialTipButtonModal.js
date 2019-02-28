@@ -44,6 +44,43 @@ function SocialTipButton(options) {
       ].join('\n');
 
     break;
+    case 'youtube-comments':
+
+      buttonHtml = [
+        '<span',
+        ' id="telescope_social_button"',
+        ' data-platformname="youtube"',
+        ' data-platformuserid="'+options.platformUserId+'"',
+        ' data-contentid="'+options.contentId+'"',
+        ' class="style-scope ytd-menu-renderer force-icon-button style-default size-default">',
+        ' <a class="yt-simple-endpoint style-scope ytd-button-renderer" tabindex="-1">',
+        '   <img src="'+base64icon+'" width="25" height="25">',
+        ' </a>',
+        ' <span id="tipscash-amount-tipped" style="font-size:1rem;color:black;">$</span>',
+        '</span>'
+      ].join('\n');
+
+    break;
+
+    case 'reddit':
+
+      buttonHtml = [
+        '<li',
+        ' id="telescope_social_button"',
+        ' data-platformname="reddit"',
+        ' data-platformuserid="'+options.platformUserId+'"',
+        ' data-contentid="'+options.contentId+'"',
+        ' style="padding:5px;cursor:pointer"',
+        ' class="">',
+        ' <a alt="Tip BCH" class="">',
+        '   <img src="'+base64icon+'" width="15" height="15">',
+        ' </a>',
+        ' <span id="tipscash-amount-tipped" style="font-size:.9rem;color:black;">$</span>',
+        '</li>'
+      ].join('\n');
+
+    break;
+
     default:
       buttonHtml = [
         '',
@@ -51,20 +88,18 @@ function SocialTipButton(options) {
         ''
       ].join('\n');
 
-    break;
-  }
+    break;  }
 
   let domNode = $(buttonHtml);
 
   _.extend(this, domNode);
 
-  this.updateInterval = setInterval(function(){
-    self.update();
-  }, 8000);
+  this.updateInterval = setInterval(_.bind(this.update, this), 8000);
 
   this.update.call(this);
 
   this._ = _;
+
   this.util = util;
 
   // if (!io || !io.socket) {
@@ -97,9 +132,7 @@ SocialTipButton.prototype.update = async function() {
   amountTippedNode = amountTippedNode[0];
 
   $(amountTippedNode).text('...');
-
   let pastTipsUrl = 'https://tipscash.herokuapp.com/tips/'+this.platformName+'/id/'+encodeURIComponent(this.contentId);
-
   let pastTips;
   try {
     pastTips = await util.getJSON(pastTipsUrl);
@@ -115,6 +148,12 @@ SocialTipButton.prototype.update = async function() {
   newAmount = newAmount ? newAmount : '0';
 
   $(amountTippedNode).text('$'+newAmount);
+
+  // If this content has been tipped, style it!
+  if (newAmount > 0 && this.styleParentSelector && this.styleParentCSS) {
+    $(this).closest(this.styleParentSelector).css(this.styleParentCSS);
+  }
+
   return;
 
 };

@@ -47,7 +47,9 @@ $(document).ready(function () {
 
                 if (accountRecord && accountRecord.isClaimed) {
                     let showConnectedAs = accountRecord.platformUserId.split(':')[1] ? accountRecord.platformUserId.split(':')[1] : accountRecord.platformUserId.split(':')[0];
-                    oneElement.outerHTML = '<span class="dropdown-item">Connected to <b>'+accountRecord.platformName+'</b> as <b>'+showConnectedAs+'</b></span>';
+                    // oneElement.outerHTML = '<span class="dropdown-item">Connected to <b>'+accountRecord.platformName+'</b> as <b>'+showConnectedAs+'</b></span>';
+                    $(oneElement).attr('href', 'https://tipscash.herokuapp.com/link/'+platformData.platformname+'/begin/'+myCashAddress);
+                    $(oneElement).text('Connected to '+accountRecord.platformName+' as '+showConnectedAs);
                 } else {
                     $(oneElement).attr('href', 'https://tipscash.herokuapp.com/link/'+platformData.platformname+'/begin/'+myCashAddress);
                     $(oneElement).text(platformData.platformname+': Not Connected ( click to connect )');

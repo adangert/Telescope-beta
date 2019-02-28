@@ -547,9 +547,11 @@
                         headers = {'Content-type': 'application/json'};
                         //https://blockdozer.com/insight-api/tx/send
                         //https://bitcoincash.blockexplorer.com/api/tx/send
+
                         util.post('https://rest.bitcoin.com/v1/rawtransactions/sendRawTransaction/'+transaction.toString(), headers).then(function (txid) {
                             console.log(txid ? 'Success!' : 'Fail!');
-                            console.log('https://explorer.bitcoin.com/bch/tx/'+txid);
+                            var transactionLinkOnExplorer = 'https://explorer.bitcoin.com/bch/tx/'+txid;
+                            console.log(transactionLinkOnExplorer);
                             // Notify the balance listener of the changed amount immediately,
                             // but don't set the balance since the transaction will be processed by the websocket
                             //if (balanceListener) balanceListener(balance - amount - fee);

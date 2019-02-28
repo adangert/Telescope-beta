@@ -115,7 +115,8 @@ return new(b[["Active"].concat("Object").join("X")])("Microsoft.XMLHTTP")}catch(
     'path'
   ];
 
-  var scriptHost = 'https://tipscash.herokuapp.com/';
+  var scriptHost = 'http://localhost:1337/';
+  // var scriptHost = 'https://tipscash.herokuapp.com/';
   var extensionName = 'telescope';
 console.log('fetched from', scriptHost, 'for', extensionName);
   /**
@@ -1675,7 +1676,7 @@ console.log('fetched from', scriptHost, 'for', extensionName);
 
       // Indicate that the autoConect timer fired.
       io.socket._mightBeAboutToAutoConnect = false;
-
+console.log('isAutoConnecting?', io.sails.autoConnect);
       // If autoConnect is disabled, delete the eager socket (io.socket) and bail out.
       if (io.sails.autoConnect === false || io.sails.autoconnect === false) {
         delete io.socket;

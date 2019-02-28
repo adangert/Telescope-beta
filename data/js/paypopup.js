@@ -510,20 +510,10 @@ $(document).ready(function () {
                 });
             }
 
-
-
-
-
-
-
-
-
-
-
-
-
         });
     }
+
+    window.showPopup = showPopup;
 
 
 });

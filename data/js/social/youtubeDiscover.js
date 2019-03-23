@@ -35,7 +35,7 @@ var openTipsCashPopup = async function(someHtmlElement, rect) {
 
   // URI encode this field before we send it off for encryption
   // so it doesn't get mangled by the webserver's body parser.
-  let encodedOpreturn = encodeURIComponent('tipscash::'+nodeData.platformname+'::'+nodeData.contentid);
+  let encodedOpreturn = encodeURIComponent('tdc::'+nodeData.platformname+'::'+nodeData.contentid);
 
   // Encrypt the opreturn string while this project is still 
   // in stealth mode. Once we release, this will be public.
@@ -51,8 +51,6 @@ var openTipsCashPopup = async function(someHtmlElement, rect) {
   console.log('using opreturn:', opreturnString);
 
   let fetchAccountUri = 'https://tipscash.herokuapp.com/search/youtube/ident/'+encodeURIComponent(nodeData.platformuserid);
-  // let fetchAccountUri = 'http://localhost:1337/search/youtube/ident/'+encodeURIComponent(nodeData.platformuserid);
-console.log('fetching from url:', fetchAccountUri);
 
   let tipscashAccount;
   try {

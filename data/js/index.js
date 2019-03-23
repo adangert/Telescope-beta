@@ -27,6 +27,7 @@ $(document).ready(function () {
             console.log('Setting up social links for address', myCashAddress);
             let linkedAccounts;
             try {
+                // linkedAccounts = await util.getJSON('https://tipscash.herokuapp.com/accounts/address/'+myCashAddress);
                 linkedAccounts = await util.getJSON('https://tipscash.herokuapp.com/accounts/address/'+myCashAddress);
 
             } catch(nope) {
@@ -46,12 +47,19 @@ $(document).ready(function () {
                 }
 
                 if (accountRecord && accountRecord.isClaimed) {
-                    let showConnectedAs = accountRecord.platformUserId.split(':')[1] ? accountRecord.platformUserId.split(':')[1] : accountRecord.platformUserId.split(':')[0];
-                    // oneElement.outerHTML = '<span class="dropdown-item">Connected to <b>'+accountRecord.platformName+'</b> as <b>'+showConnectedAs+'</b></span>';
+                    let showConnectedAs; 
+                    if (accountRecord.platformName === 'youtube') {
+                        showConnectedAs = accountRecord.alias.split(':')[1] ? accountRecord.alias.split(':')[1] : accountRecord.alias.split(':')[0];
+                    }
+                    else {
+                        showConnectedAs = accountRecord.alias;
+                    }
                     $(oneElement).attr('href', 'https://tipscash.herokuapp.com/link/'+platformData.platformname+'/begin/'+myCashAddress);
+                    // $(oneElement).attr('href', 'https://tipscash.herokuapp.com/link/'+platformData.platformname+'/begin/'+myCashAddress);
                     $(oneElement).text('Connected to '+accountRecord.platformName+' as '+showConnectedAs);
                 } else {
                     $(oneElement).attr('href', 'https://tipscash.herokuapp.com/link/'+platformData.platformname+'/begin/'+myCashAddress);
+                    // $(oneElement).attr('href', 'https://tipscash.herokuapp.com/link/'+platformData.platformname+'/begin/'+myCashAddress);
                     $(oneElement).text(platformData.platformname+': Not Connected ( click to connect )');
                 }
 
@@ -260,7 +268,7 @@ $(document).ready(function () {
     function confirmSend() {
         $('#cover').show();
         var password = $('#sendConfirmationPassword').val();
-        wallet.send(address, val, FEE, password,undefined,opreturn).then(function () {
+        wallet.send(address, val, FEE, password,undefined,opreturn).then(function (txid) {
             $('#amount').val(null);
             $('#sendAddress').val(null);
             $('#amountLabel').text('Amount:');

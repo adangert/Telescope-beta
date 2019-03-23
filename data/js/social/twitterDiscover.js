@@ -15,7 +15,7 @@ let openTipsCashPopup = async function(someHtmlElement, rect) {
 
   // URI encode this field before we send it off for encryption
   // so it doesn't get mangled by the webserver's body parser.
-  let encodedOpreturn = encodeURIComponent('tipscash::'+nodeData.platformname+'::'+nodeData.contentid);
+  let encodedOpreturn = encodeURIComponent('tdc::'+nodeData.platformname+'::'+nodeData.contentid);
 
   // Encrypt the opreturn string while this project is still 
   // in stealth mode. Once we release, this will be public.

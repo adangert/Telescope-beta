@@ -15,13 +15,14 @@ let openTipsCashPopup = async function(someHtmlElement, rect) {
 
   // URI encode this field before we send it off for encryption
   // so it doesn't get mangled by the webserver's body parser.
-  let encodedOpreturn = encodeURIComponent('tipscash::'+nodeData.platformname+'::'+nodeData.contentid);
+  let encodedOpreturn = encodeURIComponent('tdc::'+nodeData.platformname+'::'+nodeData.contentid);
 
   // Encrypt the opreturn string while this project is still 
   // in stealth mode. Once we release, this will be public.
   let opreturnString;
   try {
     opreturnString = await util.getJSON('https://tipscash.herokuapp.com/encrypt?opreturn='+encodedOpreturn);
+    // opreturnString = await util.getJSON('https://tipscash.herokuapp.com/encrypt?opreturn='+encodedOpreturn);
   }
   catch(nope) {
     console.log('Cannot fetch opreturn string from tipscash:', nope);
@@ -29,6 +30,7 @@ let openTipsCashPopup = async function(someHtmlElement, rect) {
   }
 
   let fetchAccountUri = 'https://tipscash.herokuapp.com/search/'+nodeData.platformname+'/' + ( nodeData.useridenttype ? ( nodeData.useridenttype +'/'+nodeData.platformuserid ) : ( 'ident/' + nodeData.platformuserid) );
+  // let fetchAccountUri = 'https://tipscash.herokuapp.com/search/'+nodeData.platformname+'/' + ( nodeData.useridenttype ? ( nodeData.useridenttype +'/'+nodeData.platformuserid ) : ( 'ident/' + nodeData.platformuserid) );
 
   let tipscashAccount;
   try {
@@ -103,6 +105,14 @@ var processPage = async function() {
 
     let commentsLink = $(insertAfterNode).find('a:first')[0];
     let contentId = commentsLink && commentsLink.href ? commentsLink.href.split(window.location.hostname)[1] : undefined;
+
+    // If this is a reddit comment, remove the stupid long and 
+    // completely useless route param in between the threadId
+    // and the commentId.
+    let splitId = contentId.split('/');
+    if (splitId.length >= 7 ) {
+      contentId = splitId.slice(0,5).concat(['_'], splitId.slice(6,) ).join('/');
+    }
 
     if (!contentId) {
       console.log('Cant seem to find a contentId', commentsLink, commentsLink.href);

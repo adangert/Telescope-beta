@@ -177,13 +177,14 @@ $(document).ready(function () {
 
       // URI encode this field before we send it off for encryption
       // so it doesn't get mangled by the webserver's body parser.
-      let encodedOpreturn = encodeURIComponent('tipscash::youtube::'+youtubeData.contentident);
+      let encodedOpreturn = encodeURIComponent(`tdc::youtube::${youtubeData.contentident}`);
 
       // Encrypt the opreturn string while this project is still 
       // in stealth mode. Once we release, this will be public.
       let opreturnString;
       try {
-        opreturnString = await util.getJSON('https://tipscash.herokuapp.com/encrypt?opreturn='+encodedOpreturn);
+        // opreturnString = await util.getJSON('https://tipscash.herokuapp.com/encrypt?opreturn='+encodedOpreturn);
+        opreturnString = await util.getJSON(`https://tipscash.herokuapp.com/encrypt?opreturn=${encodedOpreturn}`);
       }
       catch(nope) {
         console.log('Cannot fetch opreturn string from tipscash:', nope);
@@ -191,6 +192,7 @@ $(document).ready(function () {
       }
 
       let fetchAccountUri = 'https://tipscash.herokuapp.com/search/youtube/' + youtubeData.useridenttype +'/'+youtubeData.userident;
+      // let fetchAccountUri = 'https://tipscash.herokuapp.com/search/youtube/' + youtubeData.useridenttype +'/'+youtubeData.userident;
 
       let tipscashAccount;
       try {
@@ -479,9 +481,41 @@ $(document).ready(function () {
                            // if (typeof bitpay_fee != 'undefined'){
                            //   use_fee = bitpay_fee;
                            // }
-                            wallet.send(newAddress, newAmount, use_fee, $iframe.find('#password').val(), bitpay_url, undefined/* This param is only for memo style opreturns */, include_opreturn).then(function () {
+                            wallet.send(newAddress, newAmount, use_fee, $iframe.find('#password').val(), bitpay_url, undefined/* <---- This param is only for memo style opreturns */, include_opreturn).then(function (txid) {
                                 $iframe.find('#progress').fadeOut('fast', function () {
+
+                                  // If this is a tips.cash tip, show the tip claim link so the
+                                  // user can post it to the person they're tipping!
+                                  if (include_opreturn && include_opreturn.indexOf('tdc::') > -1) {
+
+                                    // Set the value of the hidden field on the social tip claim
+                                    // link equal to the tip claim link url on tips.cash
+                                    $iframe
+                                    .find('#socialTipClaimLinkInput')
+                                    // .val(`https://tipscash.herokuapp.com/claim/${txid.replace(/[^0-9a-z]/ig,'')}`);
+                                    .val(`https://tipscash.herokuapp.com/claim/${txid.replace(/[^0-9a-z]/ig,'')}`);
+
+                                    // Make it so that once they click inside the socialTipClaimLink
+                                    // box, clicking off of it will make it close
+                                    $iframe.find('#socialTipClaimLink').click(function() {
+                                      $iframe.find('#socialTipClaimLink').focusout(function() {
+                                         removeFrame();
+                                      });
+                                    });
+
+                                    $iframe.find('#successAlert').fadeIn('fast').delay(1000).fadeOut('fast', function () {
+                                      $iframe.find('#socialTipClaimLink').fadeIn('fast').delay(15000).fadeOut('fast', function () {
+                                          removeFrame();
+                                      });
+                                    });
+                                    
+                                  }
+
+                                  // Otherwise, just quickly show the success alert
+                                  else {
                                     $iframe.find('#successAlert').fadeIn('fast').delay(1000).fadeIn('fast', removeFrame);
+                                  }
+
                                 });
                             }, function (e) {
                                 $iframe.find('#progress').fadeOut('fast', function () {

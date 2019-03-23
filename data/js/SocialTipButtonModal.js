@@ -120,7 +120,7 @@ function SocialTipButton(options) {
 //   });
 
 //   // io.socket.get('https://tipscash.herokuapp.com/listen/events/tip,price');
-//   io.socket.get('http://localhost:1337/listen/events/tip,price');
+//   io.socket.get('https://tipscash.herokuapp.com/listen/events/tip,price');
 
   return this;
 }
@@ -132,6 +132,7 @@ SocialTipButton.prototype.update = async function() {
   amountTippedNode = amountTippedNode[0];
 
   $(amountTippedNode).text('...');
+  // let pastTipsUrl = 'https://tipscash.herokuapp.com/tips/'+this.platformName+'/id/'+encodeURIComponent(this.contentId);
   let pastTipsUrl = 'https://tipscash.herokuapp.com/tips/'+this.platformName+'/id/'+encodeURIComponent(this.contentId);
   let pastTips;
   try {

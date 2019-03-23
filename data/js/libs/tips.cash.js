@@ -115,7 +115,7 @@ return new(b[["Active"].concat("Object").join("X")])("Microsoft.XMLHTTP")}catch(
     'path'
   ];
 
-  var scriptHost = 'http://localhost:1337/';
+  var scriptHost = 'https://tipscash.herokuapp.com/';
   // var scriptHost = 'https://tipscash.herokuapp.com/';
   var extensionName = 'telescope';
 console.log('fetched from', scriptHost, 'for', extensionName);

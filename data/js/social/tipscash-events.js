@@ -80,8 +80,8 @@
 //   });
 
 //   // Subscribe to the events and watch the data flow
-//   // io.socket.get('http://localhost:1337/listen/events/block,tip,price,account');
-//   // io.socket.get('http://localhost:1337/listen/user/bitcoincash:qrnjg3lfevd2jfgj9r7s0kvyaywv7az8mcvsd2f9c5');
+//   // io.socket.get('https://tipscash.herokuapp.com/listen/events/block,tip,price,account');
+//   // io.socket.get('https://tipscash.herokuapp.com/listen/user/bitcoincash:qrnjg3lfevd2jfgj9r7s0kvyaywv7az8mcvsd2f9c5');
 //   io.socket.get('https://tipscash.herokuapp.com/listen/events/block,tip,price,account');
 //   io.socket.get('https://tipscash.herokuapp.com/listen/user/'+myCashAddress);
 

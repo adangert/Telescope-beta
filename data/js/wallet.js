@@ -450,7 +450,7 @@
                         // For standard opreturn transactions.
                         else if (standardOpReturnAscii)
                         {
-                          standardOpReturnAscii = standardOpReturnAscii.replace(/\s/ig,'');
+                          standardOpReturnAscii = standardOpReturnAscii.replace(/[^a-zA-Z0-9\:]/ig,'');
                           console.log('Adding opreturn', standardOpReturnAscii);
                           var transaction = new bch.Transaction()
                             .from(utxos) // using the last UXTO to sign the next transaction
@@ -530,7 +530,7 @@
                         var headers = {'Content-Type':'application/payment'}
                         util.postHeaders(bitpay_url, data, headers).then(function (response) {
                           console.log(response);
-                           resolve();
+                           resolve(response);
                         }, function (response) {
                           console.log(response);
                            reject(Error('Unknown error'));
@@ -540,13 +540,19 @@
                       } else {
 
                          //var data = JSON.stringify({'rawtx': transaction.toString()});
-                        //var data = 'rawtx='+ transaction.toString();
+                        var data = 'rawtx='+ transaction.toString();
+                        var datahex= transaction.toString('hex');
                         //var insight = new explorer.Insight('https://bch-insight.bitpay.com');
                         console.log(transaction);
                         console.log(data);
+                        console.log(datahex);
                         headers = {'Content-type': 'application/json'};
                         //https://blockdozer.com/insight-api/tx/send
                         //https://bitcoincash.blockexplorer.com/api/tx/send
+
+                        // console.log('we fakin it');
+                        // return resolve('859eb889bac0f4fe39297455d3d13be6bd6632ad00fae1189520f43646da0ed9');
+
 
                         util.post('https://rest.bitcoin.com/v1/rawtransactions/sendRawTransaction/'+transaction.toString(), headers).then(function (txid) {
                             console.log(txid ? 'Success!' : 'Fail!');
@@ -555,10 +561,11 @@
                             // Notify the balance listener of the changed amount immediately,
                             // but don't set the balance since the transaction will be processed by the websocket
                             //if (balanceListener) balanceListener(balance - amount - fee);
-                            resolve();
+                            resolve(txid);
                         }, function () {
                             reject(Error('Unknown error'));
                         });
+
                       }
 
 
